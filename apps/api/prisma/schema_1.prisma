@@ -181,6 +181,7 @@ model Empresa {
   embeddings           Embedding[]
   eventos              Evento[]
   logsAuditoria        LogAuditoria[]
+  logsIA               LogIA[]
   archivos             Archivo[]
   notificaciones       Notificacion[]
   recordatorios        Recordatorio[]

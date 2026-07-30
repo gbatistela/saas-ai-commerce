@@ -1,0 +1,981 @@
+// =============================================================
+// SaaS AI Commerce — Prisma Schema
+// Paso 3: Esquema de base de datos completo
+// =============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector"), uuidOssp(map: "uuid-ossp")]
+}
+
+// =============================================================
+// ENUMS
+// =============================================================
+
+enum EstadoGeneral {
+  ACTIVO
+  INACTIVO
+  SUSPENDIDO
+}
+
+enum CanalOrigen {
+  WHATSAPP
+  INSTAGRAM
+  WEB
+  MANUAL
+}
+
+enum EstadoConversacion {
+  ABIERTA
+  CERRADA
+  HANDOFF
+}
+
+enum EmisorMensaje {
+  CLIENTE
+  IA
+  HUMANO
+}
+
+enum TipoMensaje {
+  TEXTO
+  IMAGEN
+  AUDIO
+  VIDEO
+  DOCUMENTO
+  UBICACION
+}
+
+enum TipoPrompt {
+  SYSTEM
+  VENTAS
+  SOPORTE
+  RECLAMOS
+}
+
+enum EstadoCarrito {
+  ACTIVO
+  ABANDONADO
+  CONVERTIDO
+}
+
+enum TipoCupon {
+  PORCENTAJE
+  MONTO_FIJO
+}
+
+enum EstadoPedidoEnum {
+  PENDIENTE
+  PREPARANDO
+  EMPAQUETADO
+  DESPACHADO
+  EN_VIAJE
+  ENTREGADO
+  CANCELADO
+  DEVUELTO
+}
+
+enum ProveedorPago {
+  MERCADO_PAGO
+  STRIPE
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  REEMBOLSADO
+}
+
+enum CanalCampana {
+  WHATSAPP
+  INSTAGRAM
+  EMAIL
+}
+
+enum EstadoCampana {
+  BORRADOR
+  PROGRAMADA
+  ENVIANDO
+  FINALIZADA
+  CANCELADA
+}
+
+enum TipoArchivoProducto {
+  IMAGEN
+  VIDEO
+  PDF
+}
+
+enum TipoRelacionProducto {
+  SIMILAR
+  COMPLEMENTARIO
+  COMBO
+}
+
+enum EstadoReclamo {
+  ABIERTO
+  EN_PROCESO
+  RESUELTO
+  ESCALADO
+  CERRADO
+}
+
+enum PrioridadReclamo {
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum TipoRecordatorio {
+  CARRITO_ABANDONADO
+  PEDIDO_PENDIENTE
+  SEGUIMIENTO_MANUAL
+}
+
+// =============================================================
+// IDENTITY
+// =============================================================
+
+model Empresa {
+  id                   String   @id @default(uuid())
+  nombre               String
+  slug                 String   @unique
+  rubro                String?
+  logoUrl              String?  @map("logo_url")
+  telefonoWhatsapp     String?  @map("telefono_whatsapp")
+  instagramAccountId   String?  @map("instagram_account_id")
+  moneda               String   @default("ARS")
+  timezone             String   @default("America/Argentina/Buenos_Aires")
+  plan                 String   @default("trial")
+  estado               EstadoGeneral @default(ACTIVO)
+  configJson           Json?    @map("config_json")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
+
+  usuarios             Usuario[]
+  roles                Rol[]
+  clientes             Cliente[]
+  categorias           Categoria[]
+  marcas               Marca[]
+  productos            Producto[]
+  etiquetas            Etiqueta[]
+  carritos             Carrito[]
+  cupones              Cupon[]
+  descuentos           Descuento[]
+  pedidos              Pedido[]
+  pagos                Pago[]
+  campanas             Campana[]
+  audiencias           Audiencia[]
+  reclamos             Reclamo[]
+  configuracionIA      ConfiguracionIA?
+  prompts              Prompt[]
+  embeddings           Embedding[]
+  eventos              Evento[]
+  logsAuditoria        LogAuditoria[]
+  archivos             Archivo[]
+  notificaciones       Notificacion[]
+  recordatorios        Recordatorio[]
+  respuestasRapidas    RespuestaRapida[]
+  conversaciones       Conversacion[]
+
+  @@map("empresas")
+}
+
+model Usuario {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  nombre       String
+  email        String
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  estado       EstadoGeneral @default(ACTIVO)
+  ultimoLogin  DateTime? @map("ultimo_login")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  roles              UsuarioRol[]
+  conversacionesAsignadas Conversacion[] @relation("ConversacionAsignada")
+  reclamosAsignados  Reclamo[]
+  notificaciones     Notificacion[]
+  logsAuditoria      LogAuditoria[]
+
+  @@unique([empresaId, email])
+  @@map("usuarios")
+}
+
+model Rol {
+  id          String   @id @default(uuid())
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  nombre      String
+  descripcion String?
+  esSistema   Boolean  @default(false) @map("es_sistema")
+
+  usuarios    UsuarioRol[]
+  permisos    RolPermiso[]
+
+  @@map("roles")
+}
+
+model Permiso {
+  id          String   @id @default(uuid())
+  codigo      String   @unique
+  descripcion String?
+  modulo      String
+
+  roles       RolPermiso[]
+
+  @@map("permisos")
+}
+
+model UsuarioRol {
+  usuarioId String  @map("usuario_id")
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  rolId     String  @map("rol_id")
+  rol       Rol     @relation(fields: [rolId], references: [id])
+
+  @@id([usuarioId, rolId])
+  @@map("usuario_roles")
+}
+
+model RolPermiso {
+  rolId     String  @map("rol_id")
+  rol       Rol     @relation(fields: [rolId], references: [id])
+  permisoId String  @map("permiso_id")
+  permiso   Permiso @relation(fields: [permisoId], references: [id])
+
+  @@id([rolId, permisoId])
+  @@map("rol_permisos")
+}
+
+// =============================================================
+// CRM
+// =============================================================
+
+model Cliente {
+  id                    String   @id @default(uuid())
+  empresaId             String   @map("empresa_id")
+  empresa               Empresa  @relation(fields: [empresaId], references: [id])
+  nombre                String?
+  telefono              String?
+  email                 String?
+  canalOrigen           CanalOrigen @default(WHATSAPP) @map("canal_origen")
+  esFrecuente           Boolean  @default(false) @map("es_frecuente")
+  presupuestoEstimado   Decimal? @map("presupuesto_estimado")
+  talleP                String?  @map("talle_preferido")
+  colorPreferido        String?  @map("color_preferido")
+  marcaPreferida        String?  @map("marca_preferida")
+  metodoPagoPreferido   String?  @map("metodo_pago_preferido")
+  notasIA               String?  @map("notas_ia")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at")
+
+  direcciones           Direccion[]
+  conversaciones        Conversacion[]
+  carritos              Carrito[]
+  pedidos               Pedido[]
+  reclamos              Reclamo[]
+  favoritos             Favorito[]
+  etiquetas             ClienteEtiqueta[]
+  historial             HistorialInteraccion[]
+  audiencias            AudienciaCliente[]
+  campanaEnvios         CampanaEnvio[]
+
+  @@unique([empresaId, telefono])
+  @@index([empresaId, email])
+  @@map("clientes")
+}
+
+model Direccion {
+  id          String   @id @default(uuid())
+  clienteId   String   @map("cliente_id")
+  cliente     Cliente  @relation(fields: [clienteId], references: [id])
+  calle       String
+  numero      String?
+  ciudad      String
+  provincia   String?
+  cp          String?
+  referencia  String?
+  esPrincipal Boolean  @default(false) @map("es_principal")
+
+  pedidos     Pedido[]
+
+  @@map("direcciones")
+}
+
+model Etiqueta {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  nombre    String
+  color     String?
+
+  clientes  ClienteEtiqueta[]
+  productos ProductoEtiqueta[]
+
+  @@unique([empresaId, nombre])
+  @@map("etiquetas")
+}
+
+model ClienteEtiqueta {
+  clienteId  String   @map("cliente_id")
+  cliente    Cliente  @relation(fields: [clienteId], references: [id])
+  etiquetaId String   @map("etiqueta_id")
+  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
+
+  @@id([clienteId, etiquetaId])
+  @@map("cliente_etiquetas")
+}
+
+model Favorito {
+  id         String   @id @default(uuid())
+  clienteId  String   @map("cliente_id")
+  cliente    Cliente  @relation(fields: [clienteId], references: [id])
+  productoId String   @map("producto_id")
+  producto   Producto @relation(fields: [productoId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([clienteId, productoId])
+  @@map("favoritos")
+}
+
+model HistorialInteraccion {
+  id            String   @id @default(uuid())
+  clienteId     String   @map("cliente_id")
+  cliente       Cliente  @relation(fields: [clienteId], references: [id])
+  tipo          String
+  referenciaId  String?  @map("referencia_id")
+  descripcion   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("historial_interacciones")
+}
+
+// =============================================================
+// CONVERSATIONS
+// =============================================================
+
+model Conversacion {
+  id              String   @id @default(uuid())
+  empresaId       String   @map("empresa_id")
+  empresa         Empresa  @relation(fields: [empresaId], references: [id])
+  clienteId       String   @map("cliente_id")
+  cliente         Cliente  @relation(fields: [clienteId], references: [id])
+  canal           CanalOrigen
+  estado          EstadoConversacion @default(ABIERTA)
+  asignadoAId     String?  @map("asignado_a")
+  asignadoA       Usuario? @relation("ConversacionAsignada", fields: [asignadoAId], references: [id])
+  ultimoMensajeAt DateTime? @map("ultimo_mensaje_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  mensajes        Mensaje[]
+
+  @@index([empresaId, estado])
+  @@map("conversaciones")
+}
+
+model Mensaje {
+  id                 String   @id @default(uuid())
+  conversacionId     String   @map("conversacion_id")
+  conversacion       Conversacion @relation(fields: [conversacionId], references: [id])
+  emisor             EmisorMensaje
+  tipo               TipoMensaje @default(TEXTO)
+  contenido          String?
+  archivoId          String?  @map("archivo_id")
+  archivo            Archivo? @relation(fields: [archivoId], references: [id])
+  tokensUsados       Int?     @map("tokens_usados")
+  costoUsd           Decimal? @map("costo_usd")
+  intencionDetectada String?  @map("intencion_detectada")
+  sentimiento        String?
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  logIA              LogIA?
+
+  @@index([conversacionId, createdAt])
+  @@map("mensajes")
+}
+
+model RespuestaRapida {
+  id        String  @id @default(uuid())
+  empresaId String  @map("empresa_id")
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  atajo     String
+  contenido String
+
+  @@unique([empresaId, atajo])
+  @@map("respuestas_rapidas")
+}
+
+// =============================================================
+// AI ENGINE
+// =============================================================
+
+model ConfiguracionIA {
+  id                       String   @id @default(uuid())
+  empresaId                String   @unique @map("empresa_id")
+  empresa                  Empresa  @relation(fields: [empresaId], references: [id])
+  tono                     String?
+  reglasNegocioJson        Json?    @map("reglas_negocio_json")
+  modeloOpenai             String   @default("gpt-4o-mini") @map("modelo_openai")
+  temperature              Float    @default(0.7)
+  maxTokens                Int      @default(600) @map("max_tokens")
+  horarioAtencionJson      Json?    @map("horario_atencion_json")
+  condicionesHandoffJson   Json?    @map("condiciones_handoff_json")
+
+  @@map("configuraciones_ia")
+}
+
+model Prompt {
+  id        String     @id @default(uuid())
+  empresaId String     @map("empresa_id")
+  empresa   Empresa    @relation(fields: [empresaId], references: [id])
+  tipo      TipoPrompt
+  contenido String
+  version   Int        @default(1)
+  activo    Boolean    @default(true)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([empresaId, tipo, activo])
+  @@map("prompts")
+}
+
+model Embedding {
+  id               String   @id @default(uuid())
+  empresaId        String   @map("empresa_id")
+  empresa          Empresa  @relation(fields: [empresaId], references: [id])
+  entidadTipo      String   @map("entidad_tipo") // producto | faq | politica
+  entidadId        String   @map("entidad_id")
+  contenidoFuente  String   @map("contenido_fuente")
+  vector           Unsupported("vector(1536)")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([empresaId, entidadTipo])
+  @@map("embeddings")
+}
+
+model LogIA {
+  id                String   @id @default(uuid())
+  empresaId         String   @map("empresa_id")
+  empresa           Empresa  @relation(fields: [empresaId], references: [id])
+  mensajeId         String   @unique @map("mensaje_id")
+  mensaje           Mensaje  @relation(fields: [mensajeId], references: [id])
+  promptEnviado     String   @map("prompt_enviado")
+  respuestaCruda    String?  @map("respuesta_cruda")
+  funcionLlamada    String?  @map("funcion_llamada")
+  tokensPrompt      Int?     @map("tokens_prompt")
+  tokensCompletion  Int?     @map("tokens_completion")
+  costoUsd          Decimal? @map("costo_usd")
+  latenciaMs        Int?     @map("latencia_ms")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("logs_ia")
+}
+
+// =============================================================
+// CATALOG
+// =============================================================
+
+model Categoria {
+  id                String   @id @default(uuid())
+  empresaId         String   @map("empresa_id")
+  empresa           Empresa  @relation(fields: [empresaId], references: [id])
+  nombre            String
+  categoriaPadreId  String?  @map("categoria_padre_id")
+  categoriaPadre    Categoria? @relation("CategoriaJerarquia", fields: [categoriaPadreId], references: [id])
+  subcategorias     Categoria[] @relation("CategoriaJerarquia")
+
+  productos         Producto[]
+
+  @@map("categorias")
+}
+
+model Marca {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  nombre    String
+  logoUrl   String?  @map("logo_url")
+
+  productos Producto[]
+
+  @@map("marcas")
+}
+
+model Producto {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  categoriaId   String?  @map("categoria_id")
+  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
+  marcaId       String?  @map("marca_id")
+  marca         Marca?   @relation(fields: [marcaId], references: [id])
+  sku           String
+  codigoBarras  String?  @map("codigo_barras")
+  nombre        String
+  descripcion   String?
+  precio        Decimal
+  costo         Decimal?
+  peso          Decimal?
+  seoSlug       String?  @map("seo_slug")
+  seoMeta       String?  @map("seo_meta")
+  estado        EstadoGeneral @default(ACTIVO)
+  destacado     Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  variantes            Variante[]
+  archivos             ArchivoProducto[]
+  etiquetas            ProductoEtiqueta[]
+  favoritos            Favorito[]
+  relacionadosDesde    ProductoRelacionado[] @relation("ProductoOrigen")
+  relacionadosHacia    ProductoRelacionado[] @relation("ProductoDestino")
+
+  @@unique([empresaId, sku])
+  @@index([empresaId, estado])
+  @@map("productos")
+}
+
+model Variante {
+  id               String   @id @default(uuid())
+  productoId       String   @map("producto_id")
+  producto         Producto @relation(fields: [productoId], references: [id])
+  color            String?
+  talle            String?
+  skuVariante      String   @map("sku_variante")
+  precioAdicional  Decimal  @default(0) @map("precio_adicional")
+  imagenUrl        String?  @map("imagen_url")
+
+  stock            Stock[]
+  carritoItems     CarritoItem[]
+  pedidoItems      PedidoItem[]
+
+  @@unique([productoId, skuVariante])
+  @@map("variantes")
+}
+
+model Stock {
+  id           String   @id @default(uuid())
+  varianteId   String   @map("variante_id")
+  variante     Variante @relation(fields: [varianteId], references: [id])
+  cantidad     Int      @default(0)
+  deposito     String?  @default("principal")
+  stockMinimo  Int      @default(0) @map("stock_minimo")
+
+  @@unique([varianteId, deposito])
+  @@map("stock")
+}
+
+model ArchivoProducto {
+  id          String   @id @default(uuid())
+  productoId  String   @map("producto_id")
+  producto    Producto @relation(fields: [productoId], references: [id])
+  archivoId   String   @map("archivo_id")
+  archivo     Archivo  @relation(fields: [archivoId], references: [id])
+  tipo        TipoArchivoProducto
+  orden       Int      @default(0)
+
+  @@map("archivos_producto")
+}
+
+model ProductoEtiqueta {
+  productoId  String   @map("producto_id")
+  producto    Producto @relation(fields: [productoId], references: [id])
+  etiquetaId  String   @map("etiqueta_id")
+  etiqueta    Etiqueta @relation(fields: [etiquetaId], references: [id])
+
+  @@id([productoId, etiquetaId])
+  @@map("producto_etiquetas")
+}
+
+model ProductoRelacionado {
+  id             String   @id @default(uuid())
+  productoId     String   @map("producto_id")
+  producto       Producto @relation("ProductoOrigen", fields: [productoId], references: [id])
+  relacionadoId  String   @map("relacionado_id")
+  relacionado    Producto @relation("ProductoDestino", fields: [relacionadoId], references: [id])
+  tipo           TipoRelacionProducto
+
+  @@unique([productoId, relacionadoId, tipo])
+  @@map("productos_relacionados")
+}
+
+// =============================================================
+// SALES / ORDERS
+// =============================================================
+
+model Carrito {
+  id               String   @id @default(uuid())
+  empresaId        String   @map("empresa_id")
+  empresa          Empresa  @relation(fields: [empresaId], references: [id])
+  clienteId        String   @map("cliente_id")
+  cliente          Cliente  @relation(fields: [clienteId], references: [id])
+  estado           EstadoCarrito @default(ACTIVO)
+  ultimaActividadAt DateTime @default(now()) @map("ultima_actividad_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  items            CarritoItem[]
+  pedido           Pedido?
+  recordatorios    Recordatorio[]
+
+  @@index([empresaId, estado])
+  @@map("carritos")
+}
+
+model CarritoItem {
+  id             String   @id @default(uuid())
+  carritoId      String   @map("carrito_id")
+  carrito        Carrito  @relation(fields: [carritoId], references: [id])
+  varianteId     String   @map("variante_id")
+  variante       Variante @relation(fields: [varianteId], references: [id])
+  cantidad       Int      @default(1)
+  precioUnitario Decimal  @map("precio_unitario")
+
+  @@unique([carritoId, varianteId])
+  @@map("carrito_items")
+}
+
+model Cupon {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  codigo        String
+  tipo          TipoCupon
+  valor         Decimal
+  fechaInicio   DateTime? @map("fecha_inicio")
+  fechaFin      DateTime? @map("fecha_fin")
+  usosMaximos   Int?     @map("usos_maximos")
+  usosActuales  Int      @default(0) @map("usos_actuales")
+
+  pedidos       Pedido[]
+
+  @@unique([empresaId, codigo])
+  @@map("cupones")
+}
+
+model Descuento {
+  id             String   @id @default(uuid())
+  empresaId      String   @map("empresa_id")
+  empresa        Empresa  @relation(fields: [empresaId], references: [id])
+  nombre         String
+  condicionJson  Json     @map("condicion_json")
+  valor          Decimal
+
+  @@map("descuentos")
+}
+
+model Pedido {
+  id               String   @id @default(uuid())
+  empresaId        String   @map("empresa_id")
+  empresa          Empresa  @relation(fields: [empresaId], references: [id])
+  clienteId        String   @map("cliente_id")
+  cliente          Cliente  @relation(fields: [clienteId], references: [id])
+  carritoId        String?  @unique @map("carrito_id")
+  carrito          Carrito? @relation(fields: [carritoId], references: [id])
+  numeroPedido     String   @map("numero_pedido")
+  subtotal         Decimal
+  descuentoTotal   Decimal  @default(0) @map("descuento_total")
+  envio            Decimal  @default(0)
+  total            Decimal
+  cuponId          String?  @map("cupon_id")
+  cupon            Cupon?   @relation(fields: [cuponId], references: [id])
+  direccionId      String?  @map("direccion_id")
+  direccion        Direccion? @relation(fields: [direccionId], references: [id])
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  items            PedidoItem[]
+  estados          EstadoPedidoHistorial[]
+  pagos            Pago[]
+  seguimiento      SeguimientoEnvio[]
+  reclamos         Reclamo[]
+  devoluciones     Devolucion[]
+
+  @@unique([empresaId, numeroPedido])
+  @@map("pedidos")
+}
+
+model PedidoItem {
+  id             String   @id @default(uuid())
+  pedidoId       String   @map("pedido_id")
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  varianteId     String   @map("variante_id")
+  variante       Variante @relation(fields: [varianteId], references: [id])
+  cantidad       Int
+  precioUnitario Decimal  @map("precio_unitario")
+  subtotal       Decimal
+
+  @@map("pedido_items")
+}
+
+// Historial de estados del pedido (no confundir con el enum EstadoPedidoEnum)
+model EstadoPedidoHistorial {
+  id          String   @id @default(uuid())
+  pedidoId    String   @map("pedido_id")
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id])
+  estado      EstadoPedidoEnum
+  comentario  String?
+  usuarioId   String?  @map("usuario_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([pedidoId, createdAt])
+  @@map("estados_pedido")
+}
+
+model SeguimientoEnvio {
+  id             String   @id @default(uuid())
+  pedidoId       String   @map("pedido_id")
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  transportista  String?
+  numeroTracking String?  @map("numero_tracking")
+  urlTracking    String?  @map("url_tracking")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("seguimiento_envios")
+}
+
+// =============================================================
+// PAYMENTS
+// =============================================================
+
+model Pago {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  pedidoId     String   @map("pedido_id")
+  pedido       Pedido   @relation(fields: [pedidoId], references: [id])
+  proveedor    ProveedorPago
+  monto        Decimal
+  moneda       String   @default("ARS")
+  estado       EstadoPago @default(PENDIENTE)
+  linkPago     String?  @map("link_pago")
+  qrUrl        String?  @map("qr_url")
+  externalId   String?  @map("external_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  transacciones Transaccion[]
+
+  @@index([empresaId, estado])
+  @@map("pagos")
+}
+
+model Transaccion {
+  id           String   @id @default(uuid())
+  pagoId       String   @map("pago_id")
+  pago         Pago     @relation(fields: [pagoId], references: [id])
+  payloadJson  Json     @map("payload_json")
+  tipoEvento   String   @map("tipo_evento")
+  procesado    Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("transacciones")
+}
+
+// =============================================================
+// MARKETING
+// =============================================================
+
+model Campana {
+  id                 String   @id @default(uuid())
+  empresaId          String   @map("empresa_id")
+  empresa            Empresa  @relation(fields: [empresaId], references: [id])
+  nombre             String
+  canal              CanalCampana
+  contenidoTemplate  String   @map("contenido_template")
+  variablesJson      Json?    @map("variables_json")
+  estado             EstadoCampana @default(BORRADOR)
+  fechaProgramada    DateTime? @map("fecha_programada")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  audiencias         Audiencia[]
+  envios             CampanaEnvio[]
+
+  @@map("campanas")
+}
+
+model Audiencia {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id")
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  nombre        String
+  criterioJson  Json     @map("criterio_json")
+  campanaId     String?  @map("campana_id")
+  campana       Campana? @relation(fields: [campanaId], references: [id])
+
+  clientes      AudienciaCliente[]
+
+  @@map("audiencias")
+}
+
+model AudienciaCliente {
+  audienciaId String    @map("audiencia_id")
+  audiencia   Audiencia @relation(fields: [audienciaId], references: [id])
+  clienteId   String    @map("cliente_id")
+  cliente     Cliente   @relation(fields: [clienteId], references: [id])
+
+  @@id([audienciaId, clienteId])
+  @@map("audiencia_clientes")
+}
+
+model CampanaEnvio {
+  id           String   @id @default(uuid())
+  campanaId    String   @map("campana_id")
+  campana      Campana  @relation(fields: [campanaId], references: [id])
+  clienteId    String   @map("cliente_id")
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  estadoEnvio  String   @map("estado_envio")
+  abierto      Boolean  @default(false)
+  click        Boolean  @default(false)
+  conversion   Boolean  @default(false)
+  enviadoAt    DateTime? @map("enviado_at")
+
+  @@unique([campanaId, clienteId])
+  @@map("campana_envios")
+}
+
+// =============================================================
+// SUPPORT
+// =============================================================
+
+model Reclamo {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  clienteId    String   @map("cliente_id")
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  pedidoId     String?  @map("pedido_id")
+  pedido       Pedido?  @relation(fields: [pedidoId], references: [id])
+  tipo         String
+  descripcion  String
+  estado       EstadoReclamo @default(ABIERTO)
+  asignadoAId  String?  @map("asignado_a")
+  asignadoA    Usuario? @relation(fields: [asignadoAId], references: [id])
+  prioridad    PrioridadReclamo @default(MEDIA)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  archivos     ArchivoReclamo[]
+  devolucion   Devolucion?
+
+  @@map("reclamos")
+}
+
+model ArchivoReclamo {
+  id         String   @id @default(uuid())
+  reclamoId  String   @map("reclamo_id")
+  reclamo    Reclamo  @relation(fields: [reclamoId], references: [id])
+  archivoId  String   @map("archivo_id")
+  archivo    Archivo  @relation(fields: [archivoId], references: [id])
+  tipo       TipoMensaje
+
+  @@map("archivos_reclamo")
+}
+
+model Devolucion {
+  id              String   @id @default(uuid())
+  pedidoId        String   @map("pedido_id")
+  pedido          Pedido   @relation(fields: [pedidoId], references: [id])
+  reclamoId       String?  @unique @map("reclamo_id")
+  reclamo         Reclamo? @relation(fields: [reclamoId], references: [id])
+  motivo          String
+  estado          String
+  montoReembolso  Decimal? @map("monto_reembolso")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("devoluciones")
+}
+
+// =============================================================
+// ANALYTICS / LOGS / FILES / NOTIFICATIONS (transversales)
+// =============================================================
+
+model Evento {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  tipo         String
+  entidadTipo  String?  @map("entidad_tipo")
+  entidadId    String?  @map("entidad_id")
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([empresaId, tipo, createdAt])
+  @@map("eventos")
+}
+
+model LogAuditoria {
+  id          String   @id @default(uuid())
+  empresaId   String   @map("empresa_id")
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  usuarioId   String?  @map("usuario_id")
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+  accion      String
+  entidadTipo String?  @map("entidad_tipo")
+  entidadId   String?  @map("entidad_id")
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("logs_auditoria")
+}
+
+model Archivo {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  url          String
+  tipoMime     String   @map("tipo_mime")
+  tamanoBytes  Int?     @map("tamano_bytes")
+  bucket       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  mensajes         Mensaje[]
+  archivosProducto ArchivoProducto[]
+  archivosReclamo  ArchivoReclamo[]
+
+  @@map("archivos")
+}
+
+model Notificacion {
+  id         String   @id @default(uuid())
+  empresaId  String   @map("empresa_id")
+  empresa    Empresa  @relation(fields: [empresaId], references: [id])
+  usuarioId  String   @map("usuario_id")
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  tipo       String
+  contenido  String
+  leida      Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("notificaciones")
+}
+
+model Recordatorio {
+  id           String   @id @default(uuid())
+  empresaId    String   @map("empresa_id")
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+  tipo         TipoRecordatorio
+  carritoId    String?  @map("carrito_id")
+  carrito      Carrito? @relation(fields: [carritoId], references: [id])
+  referenciaId String?  @map("referencia_id")
+  ejecutarAt   DateTime @map("ejecutar_at")
+  ejecutado    Boolean  @default(false)
+  canal        CanalOrigen
+
+  @@index([ejecutarAt, ejecutado])
+  @@map("recordatorios")
+}

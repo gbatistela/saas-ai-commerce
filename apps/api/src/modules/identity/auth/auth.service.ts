@@ -12,7 +12,7 @@ import { LoginDto } from './dto/login.dto';
 
 const SALT_ROUNDS = 12;
 
-interface TokenPair {
+export interface TokenPair {
   accessToken: string;
   refreshToken: string;
 }

@@ -23,5 +23,9 @@ declare const _default: () => {
     openai: {
         apiKey: string | undefined;
     };
+    channels: {
+        evolutionWebhookToken: string | undefined;
+        instagramVerifyToken: string | undefined;
+    };
 };
 export default _default;

@@ -5,7 +5,14 @@ import { AuthenticatedUser } from '../../../common/decorators/current-user.decor
 export declare class UsuariosController {
     private readonly usuariosService;
     constructor(usuariosService: UsuariosService);
-    listar(user: AuthenticatedUser): Promise<any>;
+    listar(user: AuthenticatedUser): Promise<{
+        id: any;
+        nombre: any;
+        email: any;
+        estado: any;
+        ultimoLogin: any;
+        rol: any;
+    }[]>;
     crear(user: AuthenticatedUser, dto: CreateUsuarioDto): Promise<{
         id: any;
         nombre: any;
@@ -22,5 +29,17 @@ export declare class UsuariosController {
         ultimoLogin: any;
         rol: any;
     }>;
-    desactivar(user: AuthenticatedUser, id: string): Promise<any>;
+    desactivar(user: AuthenticatedUser, id: string): Promise<{
+        empresaId: string;
+        email: string;
+        id: string;
+        nombre: string;
+        passwordHash: string;
+        avatarUrl: string | null;
+        estado: import(".prisma/client").$Enums.EstadoGeneral;
+        ultimoLogin: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+    }>;
 }

@@ -41,6 +41,7 @@ export class ReclamosService {
       ...(query.estado ? { estado: query.estado } : {}),
       ...(query.prioridad ? { prioridad: query.prioridad } : {}),
       ...(query.asignadoA ? { asignadoAId: query.asignadoA } : {}),
+      ...(query.cliente ? { clienteId: query.cliente } : {}),
     };
 
     const [data, total] = await this.prisma.$transaction([

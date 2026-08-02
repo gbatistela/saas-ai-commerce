@@ -4,4 +4,6 @@ export declare class UpdateEmpresaDto {
     logoUrl?: string;
     moneda?: string;
     timezone?: string;
+    telefonoWhatsapp?: string;
+    instagramAccountId?: string;
 }

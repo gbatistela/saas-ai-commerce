@@ -11,7 +11,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmpresaService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../../../infra/prisma/prisma.service");
+const CONFIGURACION_IA_DEFAULT_LECTURA = {
+    tono: null,
+    reglasNegocioJson: null,
+    modeloOpenai: 'gpt-4o-mini',
+    temperature: 0.7,
+    maxTokens: 600,
+    horarioAtencionJson: null,
+    condicionesHandoffJson: null,
+};
+const CONFIGURACION_IA_DEFAULT_CREATE = {
+    modeloOpenai: 'gpt-4o-mini',
+    temperature: 0.7,
+    maxTokens: 600,
+    reglasNegocioJson: client_1.Prisma.JsonNull,
+    horarioAtencionJson: client_1.Prisma.JsonNull,
+    condicionesHandoffJson: client_1.Prisma.JsonNull,
+};
 let EmpresaService = class EmpresaService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -30,6 +48,72 @@ let EmpresaService = class EmpresaService {
         return this.prisma.empresa.update({
             where: { id: empresaId },
             data: dto,
+        });
+    }
+    async obtenerConfiguracionIA(empresaId) {
+        const config = await this.prisma.configuracionIA.findUnique({
+            where: { empresaId },
+        });
+        return config ?? { empresaId, ...CONFIGURACION_IA_DEFAULT_LECTURA };
+    }
+    async actualizarConfiguracionIA(empresaId, dto) {
+        const { reglasNegocioJson, horarioAtencionJson, condicionesHandoffJson, ...resto } = dto;
+        return this.prisma.configuracionIA.upsert({
+            where: { empresaId },
+            create: {
+                empresaId,
+                ...CONFIGURACION_IA_DEFAULT_CREATE,
+                ...resto,
+                ...(reglasNegocioJson !== undefined
+                    ? { reglasNegocioJson: reglasNegocioJson }
+                    : {}),
+                ...(horarioAtencionJson !== undefined
+                    ? { horarioAtencionJson: horarioAtencionJson }
+                    : {}),
+                ...(condicionesHandoffJson !== undefined
+                    ? { condicionesHandoffJson: condicionesHandoffJson }
+                    : {}),
+            },
+            update: {
+                ...resto,
+                ...(reglasNegocioJson !== undefined
+                    ? { reglasNegocioJson: reglasNegocioJson }
+                    : {}),
+                ...(horarioAtencionJson !== undefined
+                    ? { horarioAtencionJson: horarioAtencionJson }
+                    : {}),
+                ...(condicionesHandoffJson !== undefined
+                    ? { condicionesHandoffJson: condicionesHandoffJson }
+                    : {}),
+            },
+        });
+    }
+    async listarPrompts(empresaId) {
+        return this.prisma.prompt.findMany({
+            where: { empresaId, activo: true },
+            orderBy: { tipo: 'asc' },
+        });
+    }
+    async actualizarPrompt(empresaId, tipo, dto) {
+        return this.prisma.$transaction(async (tx) => {
+            const actual = await tx.prompt.findFirst({
+                where: { empresaId, tipo, activo: true },
+            });
+            if (actual) {
+                await tx.prompt.update({
+                    where: { id: actual.id },
+                    data: { activo: false },
+                });
+            }
+            return tx.prompt.create({
+                data: {
+                    empresaId,
+                    tipo,
+                    contenido: dto.contenido,
+                    version: (actual?.version ?? 0) + 1,
+                    activo: true,
+                },
+            });
         });
     }
 };

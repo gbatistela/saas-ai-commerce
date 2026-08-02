@@ -45,4 +45,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateEmpresaDto.prototype, "timezone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Número de WhatsApp conectado. Convención: la instancia de Evolution API debe llamarse igual que el slug de la empresa.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateEmpresaDto.prototype, "telefonoWhatsapp", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'ID de la cuenta de Instagram Business conectada' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateEmpresaDto.prototype, "instagramAccountId", void 0);
 //# sourceMappingURL=update-empresa.dto.js.map

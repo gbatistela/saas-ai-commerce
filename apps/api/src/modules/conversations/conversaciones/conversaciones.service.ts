@@ -26,6 +26,7 @@ export class ConversacionesService {
       ...(query.estado ? { estado: query.estado } : {}),
       ...(query.canal ? { canal: query.canal } : {}),
       ...(query.asignadoA ? { asignadoAId: query.asignadoA } : {}),
+      ...(query.cliente ? { clienteId: query.cliente } : {}),
     };
 
     const [data, total] = await this.prisma.$transaction([
@@ -34,6 +35,11 @@ export class ConversacionesService {
         include: {
           cliente: { select: { id: true, nombre: true, telefono: true } },
           asignadoA: { select: { id: true, nombre: true } },
+          mensajes: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: { contenido: true, emisor: true },
+          },
         },
         orderBy: { ultimoMensajeAt: 'desc' },
         skip: (page - 1) * limit,

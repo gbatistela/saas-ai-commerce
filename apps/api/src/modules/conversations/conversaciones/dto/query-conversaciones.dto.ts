@@ -19,6 +19,11 @@ export class QueryConversacionesDto {
   @IsUUID()
   asignadoA?: string;
 
+  @ApiPropertyOptional({ description: 'ID del cliente' })
+  @IsOptional()
+  @IsUUID()
+  cliente?: string;
+
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
   @Type(() => Number)

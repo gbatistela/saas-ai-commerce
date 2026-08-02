@@ -23,4 +23,11 @@ export default () => ({
   openai: {
     apiKey: process.env.OPENAI_API_KEY,
   },
+  channels: {
+    // Token compartido que Evolution API debe enviar (header o query) para
+    // validar que el webhook de WhatsApp viene de una instancia confiable.
+    evolutionWebhookToken: process.env.EVOLUTION_WEBHOOK_TOKEN,
+    // Token de verificación del handshake GET de Meta (Instagram Messaging).
+    instagramVerifyToken: process.env.INSTAGRAM_VERIFY_TOKEN,
+  },
 });

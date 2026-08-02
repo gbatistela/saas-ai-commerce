@@ -26,4 +26,17 @@ export class UpdateEmpresaDto {
   @IsOptional()
   @IsString()
   timezone?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Número de WhatsApp conectado. Convención: la instancia de Evolution API debe llamarse igual que el slug de la empresa.',
+  })
+  @IsOptional()
+  @IsString()
+  telefonoWhatsapp?: string;
+
+  @ApiPropertyOptional({ description: 'ID de la cuenta de Instagram Business conectada' })
+  @IsOptional()
+  @IsString()
+  instagramAccountId?: string;
 }

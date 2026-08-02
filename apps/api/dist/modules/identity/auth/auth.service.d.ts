@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-interface TokenPair {
+export interface TokenPair {
     accessToken: string;
     refreshToken: string;
 }
@@ -16,14 +16,14 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         empresa: {
-            id: any;
-            nombre: any;
-            slug: any;
+            id: string;
+            nombre: string;
+            slug: string;
         };
         usuario: {
-            id: any;
-            nombre: any;
-            email: any;
+            id: string;
+            nombre: string;
+            email: string;
             rol: string;
         };
     }>;
@@ -31,9 +31,9 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         usuario: {
-            id: any;
-            nombre: any;
-            email: any;
+            id: string;
+            nombre: string;
+            email: string;
             rol: "OWNER" | "ADMIN" | "AGENTE";
         };
     }>;
@@ -43,4 +43,3 @@ export declare class AuthService {
     private generarSlug;
     private asegurarSlugUnico;
 }
-export {};

@@ -40,16 +40,29 @@ export class ProductosService {
         : {}),
     };
 
-    const [data, total] = await this.prisma.$transaction([
+    const [productos, total] = await this.prisma.$transaction([
       this.prisma.producto.findMany({
         where,
-        include: { categoria: true, marca: true },
+        include: {
+          categoria: true,
+          marca: true,
+          variantes: { select: { stock: { select: { cantidad: true, stockMinimo: true } } } },
+        },
         orderBy: { [query.sort ?? 'createdAt']: query.order ?? 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
       this.prisma.producto.count({ where }),
     ]);
+
+    const data = productos.map(({ variantes, ...producto }) => {
+      const stocks = variantes.flatMap((v) => v.stock);
+      return {
+        ...producto,
+        stockTotal: stocks.reduce((sum, s) => sum + s.cantidad, 0),
+        stockBajo: stocks.some((s) => s.cantidad <= s.stockMinimo),
+      };
+    });
 
     return {
       data,

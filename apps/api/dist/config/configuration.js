@@ -25,5 +25,9 @@ exports.default = () => ({
     openai: {
         apiKey: process.env.OPENAI_API_KEY,
     },
+    channels: {
+        evolutionWebhookToken: process.env.EVOLUTION_WEBHOOK_TOKEN,
+        instagramVerifyToken: process.env.INSTAGRAM_VERIFY_TOKEN,
+    },
 });
 //# sourceMappingURL=configuration.js.map

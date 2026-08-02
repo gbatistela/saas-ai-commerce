@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Oscuro por defecto (docs/architecture/06-panel-administrador.md §1) */
+  :root {
+    --background: 240 10% 6%;
+    --foreground: 240 10% 92%;
+
+    --card: 240 9% 9%;
+    --card-foreground: 240 10% 92%;
+
+    --popover: 240 9% 9%;
+    --popover-foreground: 240 10% 92%;
+
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 240 10% 92%;
+
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 62%;
+
+    --accent: 240 6% 18%;
+    --accent-foreground: 240 10% 92%;
+
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 24 10% 10%;
+
+    --border: 240 6% 18%;
+    --input: 240 6% 18%;
+    --ring: 258 90% 66%;
+
+    --radius: 0.65rem;
+  }
+
+  /* Toggle a claro: se agrega la clase .light al <html> */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    --primary: 258 84% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 12%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 94%;
+    --accent-foreground: 240 10% 12%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 65% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 258 84% 58%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -59,10 +59,10 @@ export declare class ReclamosController {
         } | null;
         archivos: ({
             archivo: {
+                url: string;
                 empresaId: string;
                 id: string;
                 createdAt: Date;
-                url: string;
                 tipoMime: string;
                 tamanoBytes: number | null;
                 bucket: string | null;
@@ -101,10 +101,10 @@ export declare class ReclamosController {
     }>;
     agregarArchivo(user: AuthenticatedUser, id: string, dto: CreateArchivoReclamoDto): Promise<{
         archivo: {
+            url: string;
             empresaId: string;
             id: string;
             createdAt: Date;
-            url: string;
             tipoMime: string;
             tamanoBytes: number | null;
             bucket: string | null;

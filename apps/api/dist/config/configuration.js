@@ -28,6 +28,8 @@ exports.default = () => ({
     channels: {
         evolutionWebhookToken: process.env.EVOLUTION_WEBHOOK_TOKEN,
         instagramVerifyToken: process.env.INSTAGRAM_VERIFY_TOKEN,
+        evolutionApiUrl: process.env.EVOLUTION_API_URL,
+        evolutionApiKey: process.env.EVOLUTION_API_KEY,
     },
 });
 //# sourceMappingURL=configuration.js.map

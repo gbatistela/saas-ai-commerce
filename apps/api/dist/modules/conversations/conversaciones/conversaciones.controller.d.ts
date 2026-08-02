@@ -45,10 +45,10 @@ export declare class ConversacionesController {
         mensajes: {
             data: ({
                 archivo: {
+                    url: string;
                     empresaId: string;
                     id: string;
                     createdAt: Date;
-                    url: string;
                     tipoMime: string;
                     tamanoBytes: number | null;
                     bucket: string | null;

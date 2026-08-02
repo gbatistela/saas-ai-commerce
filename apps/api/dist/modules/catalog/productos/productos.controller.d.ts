@@ -15,6 +15,7 @@ export declare class ProductosController {
         data: {
             stockTotal: number;
             stockBajo: boolean;
+            imagenUrl: string;
             categoria: {
                 empresaId: string;
                 id: string;
@@ -68,10 +69,10 @@ export declare class ProductosController {
         } | null;
         archivos: ({
             archivo: {
+                url: string;
                 empresaId: string;
                 id: string;
                 createdAt: Date;
-                url: string;
                 tipoMime: string;
                 tamanoBytes: number | null;
                 bucket: string | null;
@@ -226,10 +227,10 @@ export declare class ProductosController {
     }>;
     agregarArchivo(user: AuthenticatedUser, productoId: string, dto: CreateArchivoProductoDto): Promise<{
         archivo: {
+            url: string;
             empresaId: string;
             id: string;
             createdAt: Date;
-            url: string;
             tipoMime: string;
             tamanoBytes: number | null;
             bucket: string | null;

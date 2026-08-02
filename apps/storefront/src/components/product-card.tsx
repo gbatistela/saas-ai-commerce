@@ -9,9 +9,18 @@ export function ProductCard({ slug, producto }: { slug: string; producto: Produc
   return (
     <Link href={`/${slug}/productos/${producto.id}`}>
       <Card className="group overflow-hidden transition-shadow hover:shadow-md">
-        <div className="flex aspect-square items-center justify-center bg-secondary text-4xl text-muted-foreground">
-          🛍️
-        </div>
+        {producto.imagenUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={producto.imagenUrl}
+            alt={producto.nombre}
+            className="aspect-square w-full object-cover"
+          />
+        ) : (
+          <div className="flex aspect-square items-center justify-center bg-secondary text-4xl text-muted-foreground">
+            🛍️
+          </div>
+        )}
         <div className="space-y-1 p-3">
           <p className="line-clamp-1 text-sm font-medium">{producto.nombre}</p>
           {producto.marca && (

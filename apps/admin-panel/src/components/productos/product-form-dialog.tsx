@@ -23,6 +23,7 @@ import {
 import { apiClientFetch } from '@/lib/api-client';
 import { VariantesTab } from './variantes-tab';
 import { RelacionadosTab } from './relacionados-tab';
+import { ImagenesTab } from './imagenes-tab';
 import type { Categoria, Marca, ProductoDetalle } from './types';
 
 const FORM_VACIO = {
@@ -152,6 +153,9 @@ export function ProductFormDialog({
             <TabsTrigger value="variantes" disabled={!idActual}>
               Variantes
             </TabsTrigger>
+            <TabsTrigger value="imagenes" disabled={!idActual}>
+              Imágenes
+            </TabsTrigger>
             <TabsTrigger value="relacionados" disabled={!idActual}>
               Relacionados
             </TabsTrigger>
@@ -252,6 +256,16 @@ export function ProductFormDialog({
               <VariantesTab
                 productoId={idActual}
                 variantes={detalle.variantes}
+                onCambio={() => cargarDetalle(idActual)}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="imagenes">
+            {idActual && detalle && (
+              <ImagenesTab
+                productoId={idActual}
+                archivos={detalle.archivos}
                 onCambio={() => cargarDetalle(idActual)}
               />
             )}

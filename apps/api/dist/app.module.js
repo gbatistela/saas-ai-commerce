@@ -14,6 +14,7 @@ const throttler_1 = require("@nestjs/throttler");
 const configuration_1 = require("./config/configuration");
 const prisma_module_1 = require("./infra/prisma/prisma.module");
 const queue_module_1 = require("./infra/queue/queue.module");
+const s3_module_1 = require("./infra/s3/s3.module");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const jwt_auth_guard_1 = require("./common/guards/jwt-auth.guard");
 const roles_guard_1 = require("./common/guards/roles.guard");
@@ -33,6 +34,8 @@ const reclamos_module_1 = require("./modules/support/reclamos/reclamos.module");
 const ai_engine_module_1 = require("./modules/ai-engine/ai-engine.module");
 const dashboard_module_1 = require("./modules/analytics/dashboard/dashboard.module");
 const storefront_module_1 = require("./modules/storefront/storefront.module");
+const notifications_module_1 = require("./modules/notifications/notifications.module");
+const uploads_module_1 = require("./modules/uploads/uploads.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,6 +54,7 @@ exports.AppModule = AppModule = __decorate([
             ]),
             prisma_module_1.PrismaModule,
             queue_module_1.QueueModule,
+            s3_module_1.S3Module,
             auth_module_1.AuthModule,
             empresa_module_1.EmpresaModule,
             usuarios_module_1.UsuariosModule,
@@ -67,6 +71,8 @@ exports.AppModule = AppModule = __decorate([
             ai_engine_module_1.AiEngineModule,
             dashboard_module_1.DashboardModule,
             storefront_module_1.StorefrontModule,
+            notifications_module_1.NotificationsModule,
+            uploads_module_1.UploadsModule,
         ],
         providers: [
             { provide: core_1.APP_GUARD, useClass: jwt_auth_guard_1.JwtAuthGuard },

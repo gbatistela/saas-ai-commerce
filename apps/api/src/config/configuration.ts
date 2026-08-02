@@ -29,5 +29,9 @@ export default () => ({
     evolutionWebhookToken: process.env.EVOLUTION_WEBHOOK_TOKEN,
     // Token de verificación del handshake GET de Meta (Instagram Messaging).
     instagramVerifyToken: process.env.INSTAGRAM_VERIFY_TOKEN,
+    // Para el envío saliente: la propia API de Evolution (distinto del
+    // token que Evolution nos manda a NOSOTROS en el webhook).
+    evolutionApiUrl: process.env.EVOLUTION_API_URL,
+    evolutionApiKey: process.env.EVOLUTION_API_KEY,
   },
 });

@@ -5,6 +5,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import configuration from './config/configuration';
 import { PrismaModule } from './infra/prisma/prisma.module';
 import { QueueModule } from './infra/queue/queue.module';
+import { S3Module } from './infra/s3/s3.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -24,6 +25,8 @@ import { ReclamosModule } from './modules/support/reclamos/reclamos.module';
 import { AiEngineModule } from './modules/ai-engine/ai-engine.module';
 import { DashboardModule } from './modules/analytics/dashboard/dashboard.module';
 import { StorefrontModule } from './modules/storefront/storefront.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -39,6 +42,7 @@ import { StorefrontModule } from './modules/storefront/storefront.module';
     ]),
     PrismaModule,
     QueueModule,
+    S3Module,
     AuthModule,
     EmpresaModule,
     UsuariosModule,
@@ -55,6 +59,8 @@ import { StorefrontModule } from './modules/storefront/storefront.module';
     AiEngineModule,
     DashboardModule,
     StorefrontModule,
+    NotificationsModule,
+    UploadsModule,
   ],
   providers: [
     // Orden de guards: primero autenticación (JWT), después autorización (roles)

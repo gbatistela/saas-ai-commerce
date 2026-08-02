@@ -1,10 +1,10 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/[slug]/pedidos/page": "app/[slug]/pedidos/page.js",
-  "/[slug]/productos/[id]/page": "app/[slug]/productos/[id]/page.js",
-  "/[slug]/checkout/page": "app/[slug]/checkout/page.js",
   "/[slug]/carrito/page": "app/[slug]/carrito/page.js",
+  "/[slug]/checkout/page": "app/[slug]/checkout/page.js",
+  "/[slug]/page": "app/[slug]/page.js",
   "/[slug]/pedidos/[numero]/page": "app/[slug]/pedidos/[numero]/page.js",
-  "/[slug]/page": "app/[slug]/page.js"
+  "/[slug]/pedidos/page": "app/[slug]/pedidos/page.js",
+  "/[slug]/productos/[id]/page": "app/[slug]/productos/[id]/page.js"
 }

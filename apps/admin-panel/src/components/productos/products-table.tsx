@@ -102,8 +102,24 @@ export function ProductsTable({
                   className="cursor-pointer hover:bg-accent/50"
                 >
                   <td className="px-4 py-2.5">
-                    <p className="font-medium">{p.nombre}</p>
-                    <p className="text-xs text-muted-foreground">{p.sku}</p>
+                    <div className="flex items-center gap-3">
+                      {p.imagenUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.imagenUrl}
+                          alt=""
+                          className="h-9 w-9 flex-shrink-0 rounded-md border border-border object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-border bg-muted text-base">
+                          🛍️
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{p.nombre}</p>
+                        <p className="text-xs text-muted-foreground">{p.sku}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">
                     {p.categoria?.nombre ?? '—'}

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api';
 import { AddToCartForm } from '@/components/add-to-cart-form';
+import { ProductGallery } from '@/components/product-gallery';
 import type { ProductoDetalle } from '@/lib/types';
 
 export default async function ProductoPage({
@@ -18,9 +19,7 @@ export default async function ProductoPage({
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <div className="flex aspect-square items-center justify-center rounded-xl bg-secondary text-8xl">
-        🛍️
-      </div>
+      <ProductGallery nombre={producto.nombre} archivos={producto.archivos} />
 
       <div className="space-y-4">
         <div>

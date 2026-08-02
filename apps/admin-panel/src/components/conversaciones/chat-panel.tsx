@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { apiClientFetch } from '@/lib/api-client';
+import { QuickRepliesMenu } from './quick-replies-menu';
 import type { ConversacionDetalle } from './types';
 
 const ESTADO_LABEL: Record<ConversacionDetalle['estado'], string> = {
@@ -27,6 +28,7 @@ export function ChatPanel({
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
@@ -57,6 +59,11 @@ export function ChatPanel({
     } finally {
       setEnviando(false);
     }
+  }
+
+  function insertarRespuestaRapida(contenido: string) {
+    setTexto((t) => (t.trim() ? `${t.trim()} ${contenido}` : contenido));
+    textareaRef.current?.focus();
   }
 
   const cerrada = conversacion.estado === 'CERRADA';
@@ -113,7 +120,9 @@ export function ChatPanel({
           </p>
         )}
         <div className="flex gap-2">
+          <QuickRepliesMenu onSeleccionar={insertarRespuestaRapida} disabled={cerrada} />
           <textarea
+            ref={textareaRef}
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             onKeyDown={(e) => {

@@ -22,6 +22,7 @@ export interface ProductoResumen {
   marca: Marca | null;
   stockTotal: number;
   stockBajo: boolean;
+  imagenUrl: string | null;
 }
 
 export interface Stock {
@@ -47,10 +48,19 @@ export interface Relacionado {
   relacionado: { id: string; nombre: string };
 }
 
-export interface ProductoDetalle extends Omit<ProductoResumen, 'stockTotal' | 'stockBajo'> {
+export interface ArchivoProducto {
+  id: string;
+  tipo: 'IMAGEN' | 'VIDEO' | 'DOCUMENTO';
+  orden: number;
+  archivo: { id: string; url: string; tipoMime: string };
+}
+
+export interface ProductoDetalle
+  extends Omit<ProductoResumen, 'stockTotal' | 'stockBajo' | 'imagenUrl'> {
   descripcion: string | null;
   categoriaId: string | null;
   marcaId: string | null;
   variantes: Variante[];
   relacionadosDesde: Relacionado[];
+  archivos: ArchivoProducto[];
 }

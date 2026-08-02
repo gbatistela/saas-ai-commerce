@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FileUploader } from '@/components/file-uploader';
 import {
   Select,
   SelectContent,
@@ -44,6 +45,22 @@ export function ReclamoDetailDialog({
       apiClientFetch<ReclamoDetalle>(`/reclamos/${reclamoId}`).then(setDetalle);
     }
   }, [reclamoId]);
+
+  async function onArchivoSubido(url: string, contentType: string) {
+    if (!reclamoId) return;
+    setError(null);
+    try {
+      await apiClientFetch(`/reclamos/${reclamoId}/archivos`, {
+        method: 'POST',
+        body: JSON.stringify({ url, tipoMime: contentType, tipo: 'IMAGEN' }),
+      });
+      const actualizado = await apiClientFetch<ReclamoDetalle>(`/reclamos/${reclamoId}`);
+      setDetalle(actualizado);
+      onCambio();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo adjuntar el archivo');
+    }
+  }
 
   async function actualizar(campo: 'estado' | 'prioridad', valor: string) {
     if (!reclamoId) return;
@@ -96,27 +113,34 @@ export function ReclamoDetailDialog({
               </div>
             )}
 
-            {detalle.archivos.length > 0 && (
-              <div className="space-y-1 text-sm">
-                <p className="flex items-center gap-1.5 text-xs font-medium uppercase text-muted-foreground">
-                  <Paperclip className="h-3.5 w-3.5" /> Adjuntos ({detalle.archivos.length})
-                </p>
-                <ul className="space-y-1">
+            <div className="space-y-1.5 text-sm">
+              <p className="flex items-center gap-1.5 text-xs font-medium uppercase text-muted-foreground">
+                <Paperclip className="h-3.5 w-3.5" /> Adjuntos ({detalle.archivos.length})
+              </p>
+              {detalle.archivos.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
                   {detalle.archivos.map((a) => (
-                    <li key={a.id}>
-                      <a
-                        href={a.archivo.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary underline"
-                      >
-                        {a.tipo.toLowerCase()}
-                      </a>
-                    </li>
+                    <a
+                      key={a.id}
+                      href={a.archivo.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block aspect-square overflow-hidden rounded-md border border-border"
+                    >
+                      {a.archivo.tipoMime.startsWith('image/') ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={a.archivo.url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                          {a.tipo.toLowerCase()}
+                        </div>
+                      )}
+                    </a>
                   ))}
-                </ul>
-              </div>
-            )}
+                </div>
+              )}
+              <FileUploader carpeta="reclamos" onUploaded={onArchivoSubido} label="Adjuntar archivo" />
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">

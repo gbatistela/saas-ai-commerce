@@ -26,6 +26,8 @@ declare const _default: () => {
     channels: {
         evolutionWebhookToken: string | undefined;
         instagramVerifyToken: string | undefined;
+        evolutionApiUrl: string | undefined;
+        evolutionApiKey: string | undefined;
     };
 };
 export default _default;

@@ -43,6 +43,7 @@ export declare class StorefrontService {
         data: {
             stockTotal: number;
             stockBajo: boolean;
+            imagenUrl: string;
             categoria: {
                 empresaId: string;
                 id: string;
@@ -96,10 +97,10 @@ export declare class StorefrontService {
         } | null;
         archivos: ({
             archivo: {
+                url: string;
                 empresaId: string;
                 id: string;
                 createdAt: Date;
-                url: string;
                 tipoMime: string;
                 tamanoBytes: number | null;
                 bucket: string | null;

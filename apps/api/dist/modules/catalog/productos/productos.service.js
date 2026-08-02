@@ -42,6 +42,11 @@ let ProductosService = class ProductosService {
                     categoria: true,
                     marca: true,
                     variantes: { select: { stock: { select: { cantidad: true, stockMinimo: true } } } },
+                    archivos: {
+                        take: 1,
+                        orderBy: { orden: 'asc' },
+                        include: { archivo: { select: { url: true } } },
+                    },
                 },
                 orderBy: { [query.sort ?? 'createdAt']: query.order ?? 'desc' },
                 skip: (page - 1) * limit,
@@ -49,12 +54,13 @@ let ProductosService = class ProductosService {
             }),
             this.prisma.producto.count({ where }),
         ]);
-        const data = productos.map(({ variantes, ...producto }) => {
+        const data = productos.map(({ variantes, archivos, ...producto }) => {
             const stocks = variantes.flatMap((v) => v.stock);
             return {
                 ...producto,
                 stockTotal: stocks.reduce((sum, s) => sum + s.cantidad, 0),
                 stockBajo: stocks.some((s) => s.cantidad <= s.stockMinimo),
+                imagenUrl: archivos[0]?.archivo.url ?? null,
             };
         });
         return {

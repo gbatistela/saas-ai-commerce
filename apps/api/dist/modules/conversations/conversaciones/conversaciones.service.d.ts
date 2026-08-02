@@ -47,10 +47,10 @@ export declare class ConversacionesService {
         mensajes: {
             data: ({
                 archivo: {
+                    url: string;
                     empresaId: string;
                     id: string;
                     createdAt: Date;
-                    url: string;
                     tipoMime: string;
                     tamanoBytes: number | null;
                     bucket: string | null;

@@ -26,6 +26,7 @@ export interface ProductoResumen {
   categoria: Categoria | null;
   marca: Marca | null;
   stockTotal: number;
+  imagenUrl: string | null;
 }
 
 export interface Stock {

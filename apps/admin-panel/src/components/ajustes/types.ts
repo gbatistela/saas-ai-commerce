@@ -8,6 +8,8 @@ export interface EmpresaAjustes {
   timezone: string;
   telefonoWhatsapp: string | null;
   instagramAccountId: string | null;
+  shopifyShopDomain: string | null;
+  shopifyConectado: boolean;
 }
 
 export type RolUsuario = 'OWNER' | 'ADMIN' | 'AGENTE';

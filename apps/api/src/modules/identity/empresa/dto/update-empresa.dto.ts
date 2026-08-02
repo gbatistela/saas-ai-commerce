@@ -39,4 +39,25 @@ export class UpdateEmpresaDto {
   @IsOptional()
   @IsString()
   instagramAccountId?: string;
+
+  @ApiPropertyOptional({ description: 'Dominio *.myshopify.com de la tienda' })
+  @IsOptional()
+  @IsString()
+  shopifyShopDomain?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Access token de una app privada/custom de Shopify (Admin API). Se guarda pero nunca se devuelve en las respuestas.',
+  })
+  @IsOptional()
+  @IsString()
+  shopifyAccessToken?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'API secret de la app de Shopify, usado para verificar la firma de los webhooks entrantes.',
+  })
+  @IsOptional()
+  @IsString()
+  shopifyWebhookSecret?: string;
 }

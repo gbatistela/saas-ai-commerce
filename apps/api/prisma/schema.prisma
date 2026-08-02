@@ -152,6 +152,9 @@ model Empresa {
   logoUrl              String?  @map("logo_url")
   telefonoWhatsapp     String?  @map("telefono_whatsapp")
   instagramAccountId   String?  @map("instagram_account_id")
+  shopifyShopDomain    String?  @map("shopify_shop_domain")
+  shopifyAccessToken   String?  @map("shopify_access_token")
+  shopifyWebhookSecret String?  @map("shopify_webhook_secret")
   moneda               String   @default("ARS")
   timezone             String   @default("America/Argentina/Buenos_Aires")
   plan                 String   @default("trial")
@@ -525,6 +528,7 @@ model Producto {
   marca         Marca?   @relation(fields: [marcaId], references: [id])
   sku           String
   codigoBarras  String?  @map("codigo_barras")
+  shopifyProductId String? @unique @map("shopify_product_id")
   nombre        String
   descripcion   String?
   precio        Decimal
@@ -559,6 +563,7 @@ model Variante {
   skuVariante      String   @map("sku_variante")
   precioAdicional  Decimal  @default(0) @map("precio_adicional")
   imagenUrl        String?  @map("imagen_url")
+  shopifyVariantId String?  @unique @map("shopify_variant_id")
 
   stock            Stock[]
   carritoItems     CarritoItem[]
@@ -687,6 +692,7 @@ model Pedido {
   carritoId        String?  @unique @map("carrito_id")
   carrito          Carrito? @relation(fields: [carritoId], references: [id])
   numeroPedido     String   @map("numero_pedido")
+  shopifyOrderId   String?  @unique @map("shopify_order_id")
   subtotal         Decimal
   descuentoTotal   Decimal  @default(0) @map("descuento_total")
   envio            Decimal  @default(0)

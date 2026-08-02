@@ -18,6 +18,23 @@ const INCLUDE_DETALLE = {
   cliente: { select: { id: true, nombre: true, telefono: true } },
 } satisfies Prisma.PedidoInclude;
 
+export interface ItemPedidoExterno {
+  varianteId: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+export interface CrearPedidoExternoParams {
+  clienteId: string;
+  numeroPedido: string;
+  origenExternoId: string; // shopifyOrderId por ahora, otros orígenes a futuro
+  items: ItemPedidoExterno[];
+  subtotal: number;
+  envio: number;
+  total: number;
+  direccionId?: string;
+}
+
 @Injectable()
 export class PedidosService {
   constructor(private readonly prisma: PrismaService) {}
@@ -122,6 +139,49 @@ export class PedidosService {
     throw new ConflictException(
       'No se pudo generar un número de pedido único, reintentá',
     );
+  }
+
+  /**
+   * Crea un Pedido que no vino de nuestro propio Carrito sino de una
+   * plataforma externa (Shopify hoy) — mismo modelo de datos, pero sin
+   * `carritoId` y con `shopifyOrderId` para que el webhook de fulfillment
+   * pueda encontrarlo después. El `numeroPedido` se pasa ya resuelto
+   * (el `name` del pedido de Shopify) en vez de generarse acá.
+   */
+  async crearDesdeExterno(empresaId: string, params: CrearPedidoExternoParams) {
+    if (params.items.length === 0) {
+      throw new ConflictException('El pedido externo no tiene items reconocidos');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const pedido = await tx.pedido.create({
+        data: {
+          empresaId,
+          clienteId: params.clienteId,
+          numeroPedido: params.numeroPedido,
+          shopifyOrderId: params.origenExternoId,
+          subtotal: params.subtotal,
+          descuentoTotal: 0,
+          envio: params.envio,
+          total: params.total,
+          direccionId: params.direccionId,
+          items: {
+            create: params.items.map((item) => ({
+              varianteId: item.varianteId,
+              cantidad: item.cantidad,
+              precioUnitario: item.precioUnitario,
+              subtotal: item.cantidad * item.precioUnitario,
+            })),
+          },
+          estados: {
+            create: { estado: 'PENDIENTE' },
+          },
+        },
+        include: INCLUDE_DETALLE,
+      });
+
+      return pedido;
+    });
   }
 
   async listar(empresaId: string, query: QueryPedidosDto) {

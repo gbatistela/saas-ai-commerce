@@ -27,6 +27,7 @@ import { DashboardModule } from './modules/analytics/dashboard/dashboard.module'
 import { StorefrontModule } from './modules/storefront/storefront.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { ShopifyModule } from './modules/integrations/shopify/shopify.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     StorefrontModule,
     NotificationsModule,
     UploadsModule,
+    ShopifyModule,
   ],
   providers: [
     // Orden de guards: primero autenticación (JWT), después autorización (roles)

@@ -135,6 +135,56 @@ export class ConversacionesService {
     return mensaje;
   }
 
+  /**
+   * Manda un mensaje "de sistema" (ej. aviso de envío despachado) fuera
+   * del flujo normal de chat, sin depender de que exista ya una
+   * conversación abierta: reusa la última conversación del cliente por
+   * ese canal si sigue abierta/en handoff, o abre una nueva. Así el aviso
+   * queda visible en el historial igual que cualquier otro mensaje.
+   */
+  async enviarMensajeAutomatico(
+    empresaId: string,
+    clienteId: string,
+    canal: Prisma.ConversacionCreateInput['canal'],
+    contenido: string,
+  ) {
+    let conversacion = await this.prisma.conversacion.findFirst({
+      where: { empresaId, clienteId, canal, estado: { not: 'CERRADA' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!conversacion) {
+      conversacion = await this.prisma.conversacion.create({
+        data: { empresaId, clienteId, canal, estado: 'ABIERTA' },
+      });
+    }
+
+    const mensaje = await this.prisma.mensaje.create({
+      data: {
+        conversacionId: conversacion.id,
+        emisor: 'IA',
+        tipo: 'TEXTO',
+        contenido,
+      },
+    });
+
+    await this.prisma.conversacion.update({
+      where: { id: conversacion.id },
+      data: { ultimoMensajeAt: mensaje.createdAt },
+    });
+
+    await this.sendMessageQueue.add('send-message', {
+      empresaId,
+      conversacionId: conversacion.id,
+      mensajeId: mensaje.id,
+      clienteId,
+      canal,
+      contenido: mensaje.contenido,
+    });
+
+    return mensaje;
+  }
+
   async asignar(
     empresaId: string,
     conversacionId: string,

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Save } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { apiClientFetch } from '@/lib/api-client';
 import type { EmpresaAjustes } from './types';
 
@@ -16,8 +17,13 @@ export function EmpresaTab({ empresaInicial }: { empresaInicial: EmpresaAjustes 
     timezone: empresaInicial.timezone,
     telefonoWhatsapp: empresaInicial.telefonoWhatsapp ?? '',
     instagramAccountId: empresaInicial.instagramAccountId ?? '',
+    shopifyShopDomain: empresaInicial.shopifyShopDomain ?? '',
+    shopifyAccessToken: '',
+    shopifyWebhookSecret: '',
   });
+  const [shopifyConectado, setShopifyConectado] = useState(empresaInicial.shopifyConectado);
   const [guardando, setGuardando] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,13 +40,36 @@ export function EmpresaTab({ empresaInicial }: { empresaInicial: EmpresaAjustes 
           timezone: form.timezone,
           telefonoWhatsapp: form.telefonoWhatsapp || undefined,
           instagramAccountId: form.instagramAccountId || undefined,
+          shopifyShopDomain: form.shopifyShopDomain || undefined,
+          // Los secretos son de solo escritura: si el campo quedó vacío,
+          // no se mandan (no se pisa lo ya guardado con un valor vacío).
+          shopifyAccessToken: form.shopifyAccessToken || undefined,
+          shopifyWebhookSecret: form.shopifyWebhookSecret || undefined,
         }),
       });
+      if (form.shopifyAccessToken) setShopifyConectado(true);
+      setForm((f) => ({ ...f, shopifyAccessToken: '', shopifyWebhookSecret: '' }));
       setMensaje('Cambios guardados.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar');
     } finally {
       setGuardando(false);
+    }
+  }
+
+  async function sincronizarShopify() {
+    setSincronizando(true);
+    setError(null);
+    setMensaje(null);
+    try {
+      const res = await apiClientFetch<{ productosSincronizados: number }>('/shopify/sync', {
+        method: 'POST',
+      });
+      setMensaje(`Sincronizados ${res.productosSincronizados} productos desde Shopify.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo sincronizar con Shopify');
+    } finally {
+      setSincronizando(false);
     }
   }
 
@@ -112,6 +141,67 @@ export function EmpresaTab({ empresaInicial }: { empresaInicial: EmpresaAjustes 
               Se obtiene al conectar la cuenta de Instagram vía Meta for Developers.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base font-semibold text-foreground">Shopify</CardTitle>
+          <Badge variant={shopifyConectado ? 'success' : 'secondary'}>
+            {shopifyConectado ? 'Conectado' : 'Sin conectar'}
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <Label>Shop domain</Label>
+            <Input
+              value={form.shopifyShopDomain}
+              onChange={(e) => setForm((f) => ({ ...f, shopifyShopDomain: e.target.value }))}
+              placeholder="mi-tienda.myshopify.com"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Access token</Label>
+            <Input
+              type="password"
+              value={form.shopifyAccessToken}
+              onChange={(e) => setForm((f) => ({ ...f, shopifyAccessToken: e.target.value }))}
+              placeholder={shopifyConectado ? '•••••••••••••• (ya configurado)' : 'shpat_...'}
+            />
+            <p className="text-xs text-muted-foreground">
+              Se genera creando una app personalizada en el admin de Shopify (Settings → Apps and
+              sales channels → Develop apps) con permisos de lectura de productos y pedidos. Por
+              seguridad, una vez guardado no se vuelve a mostrar acá.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label>Webhook secret (API secret key)</Label>
+            <Input
+              type="password"
+              value={form.shopifyWebhookSecret}
+              onChange={(e) => setForm((f) => ({ ...f, shopifyWebhookSecret: e.target.value }))}
+              placeholder="Para verificar la firma de los webhooks"
+            />
+          </div>
+          <div className="space-y-1 rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Configurar webhooks en Shopify</p>
+            <p>
+              En Settings → Notifications → Webhooks, agregá estos eventos apuntando a{' '}
+              <code className="rounded bg-muted px-1">
+                {'{API_URL}'}/api/v1/webhooks/shopify
+              </code>
+              , formato JSON:
+            </p>
+            <ul className="list-disc pl-4">
+              <li>Product creation / Product update</li>
+              <li>Order creation</li>
+              <li>Fulfillment creation / Fulfillment update</li>
+            </ul>
+          </div>
+          <Button variant="outline" size="sm" onClick={sincronizarShopify} disabled={sincronizando}>
+            <RefreshCw className={sincronizando ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'} />
+            {sincronizando ? 'Sincronizando...' : 'Sincronizar catálogo ahora'}
+          </Button>
         </CardContent>
       </Card>
 

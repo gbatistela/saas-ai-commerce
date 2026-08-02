@@ -41,7 +41,7 @@ export class EmpresaService {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    return empresa;
+    return this.ocultarSecretosShopify(empresa);
   }
 
   async actualizar(empresaId: string, dto: UpdateEmpresaDto) {
@@ -50,10 +50,29 @@ export class EmpresaService {
     // pero es una validación barata y explícita).
     await this.obtener(empresaId);
 
-    return this.prisma.empresa.update({
+    const empresa = await this.prisma.empresa.update({
       where: { id: empresaId },
       data: dto,
     });
+
+    return this.ocultarSecretosShopify(empresa);
+  }
+
+  /**
+   * El access token / webhook secret de Shopify nunca se devuelven en
+   * texto plano al panel (se guardan una vez y listo) — solo se informa
+   * si está configurado, así el frontend puede mostrar el estado de la
+   * conexión sin manejar el secreto.
+   */
+  private ocultarSecretosShopify<T extends {
+    shopifyAccessToken: string | null;
+    shopifyWebhookSecret: string | null;
+  }>(empresa: T) {
+    const { shopifyAccessToken, shopifyWebhookSecret, ...resto } = empresa;
+    return {
+      ...resto,
+      shopifyConectado: Boolean(shopifyAccessToken),
+    };
   }
 
   async obtenerConfiguracionIA(empresaId: string) {
